@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 import { Header } from "@/components/shop/Header";
 import { Hero } from "@/components/shop/Hero";
@@ -175,8 +176,14 @@ const Index = () => {
       <main className="pb-32">
         {!catalogLoaded ? (
           <>
-            <div className="px-5 pt-4">
+            <div className="px-5 pt-4 relative">
               <div className="h-44 rounded-3xl bg-muted animate-pulse" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none">
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                <span className="text-xs font-medium text-muted-foreground">
+                  {lang === "en" ? "Loading catalog…" : "Загружаем каталог…"}
+                </span>
+              </div>
             </div>
             <div className="flex gap-2 overflow-hidden pb-3 pl-5 pr-5 pt-4">
               {Array.from({ length: 4 }).map((_, i) => (
