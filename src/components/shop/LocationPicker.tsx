@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { COUNTRIES, type Country } from "@/data/locations";
 import { useLocation } from "@/store/location";
+import { useLocationToggles } from "@/store/locationToggles";
 import { useI18n, useT } from "@/lib/i18n";
 import { haptic } from "@/lib/telegram";
 import logo from "@/assets/logo.webp";
@@ -17,7 +18,10 @@ export const LocationPicker = ({ onPicked, showBack, onBack }: LocationPickerPro
   const lang = useI18n((s) => s.lang) ?? "ru";
   const setLang = useI18n((s) => s.setLang);
   const setCity = useLocation((s) => s.setCity);
+  const isDisabled = useLocationToggles((s) => s.isDisabled);
   const [country, setCountry] = useState<Country | null>(null);
+
+  const unavailable = lang === "ru" ? "Временно недоступно" : "Temporarily unavailable";
 
   const choose = (citySlug: string) => {
     haptic("success");
@@ -59,49 +63,69 @@ export const LocationPicker = ({ onPicked, showBack, onBack }: LocationPickerPro
 
       {!country ? (
         <div className="grid grid-cols-2 gap-3">
-          {COUNTRIES.map((c) => (
-            <button
-              key={c.slug}
-              onClick={() => {
-                haptic("light");
-                if (c.cities.length === 1) choose(c.cities[0].slug);
-                else setCountry(c);
-              }}
-              className="bg-card rounded-3xl p-4 shadow-card active:scale-95 transition-[var(--transition-base)] text-left flex flex-col items-start gap-2"
-            >
-              <span className="text-4xl">{c.flag}</span>
-              <span className="font-bold text-sm leading-tight">{c.name[lang]}</span>
-              {c.cities.length > 1 && (
-                <span className="text-[11px] text-muted-foreground">
-                  {(() => {
-                    const n = c.cities.length;
-                    if (lang === "ru") {
-                      const mod10 = n % 10;
-                      const mod100 = n % 100;
-                      let word = "городов";
-                      if (mod10 === 1 && mod100 !== 11) word = "город";
-                      else if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100))
-                        word = "города";
-                      return `${n} ${word}`;
-                    }
-                    return `${n} ${n === 1 ? "city" : "cities"}`;
-                  })()}
-                </span>
-              )}
-            </button>
-          ))}
+          {COUNTRIES.map((c) => {
+            const off = isDisabled(c.slug);
+            return (
+              <button
+                key={c.slug}
+                disabled={off}
+                onClick={() => {
+                  if (off) return;
+                  haptic("light");
+                  if (c.cities.length === 1) choose(c.cities[0].slug);
+                  else setCountry(c);
+                }}
+                className={`bg-card rounded-3xl p-4 shadow-card transition-[var(--transition-base)] text-left flex flex-col items-start gap-2 ${
+                  off ? "opacity-40 grayscale cursor-not-allowed" : "active:scale-95"
+                }`}
+              >
+                <span className="text-4xl">{c.flag}</span>
+                <span className="font-bold text-sm leading-tight">{c.name[lang]}</span>
+                {off ? (
+                  <span className="text-[11px] text-muted-foreground italic">{unavailable}</span>
+                ) : (
+                  c.cities.length > 1 && (
+                    <span className="text-[11px] text-muted-foreground">
+                      {(() => {
+                        const n = c.cities.length;
+                        if (lang === "ru") {
+                          const mod10 = n % 10;
+                          const mod100 = n % 100;
+                          let word = "городов";
+                          if (mod10 === 1 && mod100 !== 11) word = "город";
+                          else if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100))
+                            word = "города";
+                          return `${n} ${word}`;
+                        }
+                        return `${n} ${n === 1 ? "city" : "cities"}`;
+                      })()}
+                    </span>
+                  )
+                )}
+              </button>
+            );
+          })}
         </div>
       ) : (
         <div className="space-y-2">
-          {country.cities.map((city) => (
-            <button
-              key={city.slug}
-              onClick={() => choose(city.slug)}
-              className="w-full bg-card rounded-2xl p-4 shadow-card active:scale-[0.98] transition-[var(--transition-base)] flex items-center gap-3"
-            >
-              <span className="font-bold">{city.name[lang]}</span>
-            </button>
-          ))}
+          {country.cities.map((city) => {
+            const off = isDisabled(city.slug);
+            return (
+              <button
+                key={city.slug}
+                disabled={off}
+                onClick={() => !off && choose(city.slug)}
+                className={`w-full bg-card rounded-2xl p-4 shadow-card transition-[var(--transition-base)] flex items-center justify-between gap-3 ${
+                  off ? "opacity-40 grayscale cursor-not-allowed" : "active:scale-[0.98]"
+                }`}
+              >
+                <span className="font-bold">{city.name[lang]}</span>
+                {off && (
+                  <span className="text-[11px] text-muted-foreground italic">{unavailable}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
 
