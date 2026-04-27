@@ -7,6 +7,7 @@ import { useAdminPanel } from "@/store/adminPanel";
 import { useT } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
 import { COUNTRIES, findDistrict } from "@/data/locations";
+import { useLocationToggles } from "@/store/locationToggles";
 import type { Category, Product, LocalizedString, StashType, VariantStash } from "@/types/shop";
 import { STASH_TYPES } from "@/types/shop";
 import { Button } from "@/components/ui/button";
@@ -217,6 +218,10 @@ const AdminPage = ({ onExit }: AdminPageProps) => {
     );
   }
 
+  if (selectedCountry === "__locations__") {
+    return <LocationsAdmin onBack={() => setSelectedCountry(null)} />;
+  }
+
   // Geo picker — country first
   if (!selectedCountry) {
     const awaitingCount = awaitingOrders.length;
@@ -286,6 +291,16 @@ const AdminPage = ({ onExit }: AdminPageProps) => {
               📢
             </div>
             <div className="font-bold text-sm">Рассылка</div>
+          </button>
+          <button
+            onClick={() => setSelectedCountry("__locations__")}
+            className="bg-card rounded-2xl p-4 shadow-card active:scale-[0.98] text-left col-span-2"
+          >
+            <div className="w-10 h-10 rounded-xl gradient-hero flex items-center justify-center text-xl mb-2">
+              🌍
+            </div>
+            <div className="font-bold text-sm">Локации</div>
+            <div className="text-[11px] text-muted-foreground">Включить / отключить страны и города</div>
           </button>
         </div>
 
