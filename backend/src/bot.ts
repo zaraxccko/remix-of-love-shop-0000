@@ -171,7 +171,11 @@ export async function notifyAdmins(text: string): Promise<void> {
     env.adminTgIds.map((id) =>
       queue.add(async () => {
         try {
-          await bot.sendMessage(Number(id), text, { parse_mode: "HTML" });
+          await withTimeout(
+            bot.sendMessage(Number(id), text, { parse_mode: "HTML" }),
+            SEND_TIMEOUT_MS,
+            `notifyAdmin chatId=${id}`
+          );
         } catch (err: any) {
           const code = err?.response?.body?.error_code ?? err?.code;
           const description = err?.response?.body?.description ?? err?.message;
