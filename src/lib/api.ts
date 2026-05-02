@@ -62,6 +62,17 @@ function looksLikeHtml(contentType: string, text: string) {
 // Эндпоинты
 // ============================================================
 
+export interface AdminUser {
+  tgId: string;
+  username?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  lang: string;
+  citySlug?: string | null;
+  createdAt: string;
+  ordersCount: number;
+}
+
 export interface MeUser {
   tgId: string;
   username?: string;
@@ -132,6 +143,8 @@ export const Admin = {
   updateCategory: (slug: string, data: any) => api(`/admin/categories/${slug}`, { method: "PUT", body: data }),
   deleteCategory: (slug: string) => api(`/admin/categories/${slug}`, { method: "DELETE" }),
   analytics: () => api<any>("/admin/analytics"),
+  users: (limit = 100, offset = 0) =>
+    api<{ users: AdminUser[]; total: number }>(`/admin/users?limit=${limit}&offset=${offset}`),
   broadcast: (payload: any) => api("/broadcast", { method: "POST", body: payload }),
   promoList: () => api<Array<{ id: string; code: string; discountPct: number; active: boolean; createdAt: string; redemptions: number }>>("/admin/promo"),
   promoCreate: (payload: { code: string; discountPct: number; active?: boolean }) =>
